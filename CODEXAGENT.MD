@@ -1,127 +1,165 @@
 # CODEXAGENT.MD
 
 ## Purpose
-This repository contains the FAI 2026 final project framework for building and evaluating 6 Nimmt! game-playing agents.
-Agents should make scoped, verifiable changes that match the existing architecture and strictly preserve the project rules in `Spec.txt` and `README.md`.
+This repository uses multiple agent roles to work on the same 6 Nimmt! codebase with clear separation of responsibilities:
+- research: understand the system, constraints, and likely next steps
+- draft: produce a first complete implementation
+- debug: identify root causes and fix correctness issues
+- improve: make focused improvements without changing intended behavior
+- eval: evaluate behavior, metrics, and regressions
 
-## Working style
-- For non-trivial tasks, make a short plan before editing.
+Agents should make scoped, verifiable changes, leave clear written records for future agents, and strictly follow the project rules in `Spec.txt` and `README.md`.
+
+## General Working Style
 - Read relevant files before making changes.
 - Prefer minimal diffs over broad rewrites.
 - Do not change unrelated code.
 - Be explicit about assumptions and uncertainty.
-- For research tasks, prefer analysis and documentation over implementation unless coding is explicitly requested.
-- When working in a dirty worktree, preserve unrelated user changes.
+- For non-trivial tasks, make a short plan before editing.
+- Prefer concrete evidence over speculation.
+- If repository context is large, prioritize the most relevant files and recent log entries first.
+- Preserve unrelated user changes in a dirty worktree.
+- For research tasks, prefer analysis and planning over implementation unless code changes are explicitly requested.
+
+## Project Constraints
+- `action(hand, history)` has a 1 second decision limit. If a player times out, the engine defaults to the smallest card.
+- The engine timeout exception inherits from `BaseException`. Do not use bare `except:` and do not catch `BaseException`, or you may swallow timeouts and trigger disqualification penalties.
+- Each player has a 1GB RAM limit. Avoid huge caches, oversized models, or large rollout batches.
+- Do not use `multiprocessing` or `threading` inside a submitted player. Tournament parallelism is handled externally.
+- Final evaluation is CPU-only. No GPU is provided.
+- Use Python 3.13.11 and only packages from `requirements.txt`, unless course staff explicitly approves more.
+- Final evaluation runs in a closed network. Do not require downloads, remote APIs, or online model fetches at evaluation time.
+- Hands passed to `action(hand, history)` are already sorted.
+- Prefer recomputing state from `history` rather than relying on cached internal state, because timeouts and forced fallback actions can make cached assumptions stale.
+- If a played card is lower than all row ends, the row taken is deterministic in this project: least bullheads, then shortest length, then smallest row index.
+- Cards chosen in a round are resolved from smallest to largest.
+- A row can hold 5 cards. The 6th card takes the existing row as penalty and starts the row with the played card.
+- Final tournament performance is based on average rank in random-partition tournaments, not only raw bullhead count.
+- Released baselines may be used for training or evaluation, but must not be submitted directly or imported into the final player.
+- Final submission may include two best players: `BestPlayer1` in `best_player1.py` and `BestPlayer2` in `best_player2.py`.
+- If trained weights or intermediate assets are required, submit them with the code and document reproduction in README-style docs.
+- Do not try to modify game history, manipulate seeds for unfair advantage, or alter engine behavior unless the task explicitly asks for framework changes.
+- If LLMs are used, that usage should be disclosed in the final report.
 
 ## Workflow
 Read these before starting:
-- docs/current_findings.md
-- docs/debug_log.md for debug tasks
-- docs/eval_log.md for eval tasks
+- `Spec.txt`
+- `README.md`
+- `CODEXAGENT.MD`
+- `docs/current_findings.md`
+- `docs/debug_log.md` for debug tasks
+- `docs/eval_log.md` for eval tasks
 
 Maintain these files during work:
-- docs/debug_log.md: append-only investigation history
-- docs/eval_log.md: append-only evaluation history
-- docs/current_findings.md: short confirmed facts only
+- `docs/debug_log.md`: append-only investigation history
+- `docs/eval_log.md`: append-only evaluation history
+- `docs/current_findings.md`: short confirmed facts only
 
 Rules:
 - Do not rewrite or delete prior log entries; append updates.
-- Update current_findings.md only for confirmed facts, fixes, or important remaining risks.
-- Do not put speculation in current_findings.md.
-- During eval, do not modify code unless a new correctness issue is found.
+- Update `docs/current_findings.md` only for confirmed facts, fixes, confirmed regressions, or important remaining risks.
+- Do not put speculation in `docs/current_findings.md`.
+- During eval, prioritize measurement and judgment.
+- Do not modify code during eval unless a newly discovered correctness issue makes a minimal fix strictly necessary.
+- If eval uncovers a correctness issue and a minimal fix is unavoidable, record the evidence, keep the fix tightly scoped, and recommend debug as the next step.
+- Do not let eval expand into a general debugging pass.
 
-## Code standards
-- Follow existing naming, structure, and style in the repository.
-- Prefer simple, readable code over clever code.
-- Preserve backward compatibility unless explicitly told otherwise.
-- Add comments only where they clarify non-obvious logic.
-- Avoid broad exception handling. Do not use bare `except:` and do not catch `BaseException`.
-- Keep submitted player logic deterministic or carefully bounded when randomness is used.
+## Logging Rules
+- `docs/debug_log.md` is for:
+  - bug symptoms
+  - reproductions
+  - findings
+  - root causes
+  - correctness fixes
+  - important implementation risks discovered during investigation
+- `docs/eval_log.md` is for:
+  - evaluation target
+  - setup
+  - metrics
+  - baseline comparison
+  - interpretation
+  - recommendation for next step
+- `docs/current_findings.md` is for:
+  - confirmed facts only
+  - confirmed fixes
+  - confirmed regressions
+  - important remaining risks that future agents must know
 
-## Project-specific rules from the spec
-- Player actions have a 1 second decision limit. If `action()` times out, the engine defaults to the smallest card.
-- The engine timeout exception inherits from `BaseException`; catching it or swallowing it can cause disqualification or severe scoring penalties.
-- Each player has a 1GB RAM limit. Avoid huge lookup tables, unbounded caches, and large model batches.
-- Do not use multiprocessing or threading inside an agent. The tournament runner already parallelizes matchups externally.
-- Final evaluation is CPU-only. No GPU is provided.
-- Use Python 3.13.11 and only the packages listed in `requirements.txt`, unless the course staff explicitly approves additional packages.
-- Final evaluation runs in a closed network. Do not depend on downloading models, data, packages, or remote resources at evaluation time.
-- Do not attempt to modify game history, change the random seed for unfair advantage, or alter engine behavior unless the user explicitly asks to work on the framework itself.
-- Hands passed to `action(hand, history)` are sorted. Do not sort again unless there is a clear reason.
-- Prefer computing game-dependent values from `history` each turn rather than storing state blindly, because timeouts/default moves can make cached assumptions stale.
-- The assignment low-card rule is deterministic: if a card is lower than all row ends, the engine takes the row with least bullheads, then shortest length, then smallest row index.
-- Cards chosen by players are processed from smallest to largest after all players choose.
-- A row can hold 5 cards; placing the 6th card takes the existing row as penalty and starts the row with the played card.
-- Tournament performance is based on average rank, not only raw bullhead count.
-- The final tournament uses random partitioning. Avoid overfitting to only released baselines.
-- Released baselines may be used for training/evaluation, but must not be submitted directly or imported into the final submitted player.
-- The final code submission can include two best players: `BestPlayer1` in `best_player1.py` and `BestPlayer2` in `best_player2.py`.
-- If using trained models, generated weights, or intermediate data, submit all required files and document how to reproduce them. Keep inference small enough for the 1 second/1GB limits.
-- If LLMs are used, disclose that usage in the report; the submitted code and report remain the student's responsibility.
+## Role Boundaries
+### Research
+- Primarily read-only.
+- Understand architecture, constraints, and likely solution directions.
+- Recommend the next step: draft, debug, improve, or eval.
+- Do not modify code unless explicitly requested.
+- For this project, ground recommendations in `Spec.txt`, `README.md`, engine behavior, and existing player/eval artifacts.
+
+### Draft
+- Implement the smallest coherent solution that satisfies the task.
+- Do not expand scope without a clear reason.
+- Prefer clarity and maintainability over cleverness.
+- For player agents, keep computation bounded and preserve a safe fallback decision path.
+
+### Debug
+- Reproduce the issue if possible.
+- Identify root cause, not just symptom.
+- Apply the minimal correct fix.
+- Add a regression test when appropriate.
+- Do not mask timeouts, memory errors, or engine exceptions with broad exception handlers.
+
+### Improve
+- Preserve intended behavior unless explicitly told otherwise.
+- Focus on one improvement dimension at a time, such as:
+  - readability
+  - maintainability
+  - performance
+  - reliability
+- Do not re-debug previously closed issues unless new evidence appears.
+- For player improvements, measure the effect with a small controlled evaluation when practical.
+
+### Eval
+- Evaluate current behavior under a clearly stated setup.
+- Separate raw results from interpretation.
+- Identify representative failures, not just aggregate metrics.
+- The primary responsibility during eval is measurement and judgment, not debugging or implementation.
+- Do not modify code unless a newly discovered correctness issue makes a minimal fix strictly necessary.
+- If a likely correctness issue is found:
+  - record the evidence clearly
+  - keep any code change minimal and tightly scoped
+  - recommend debug as the next step
+- Do not let eval expand into a general debugging pass.
+- Prefer tournament-oriented metrics for this project: average rank first, then bullhead totals and failure markers.
 
 ## Validation
-Before finishing, run the most relevant checks you can.
+Before finishing, run the smallest relevant validation you can.
 Preferred order:
-1. Targeted tests for changed code
-2. Lint/format checks
-3. Broader test suite if needed
+1. Targeted test for changed behavior
+2. Lint/format checks if relevant
+3. Small benchmark or evaluation if relevant
+4. Broader test suite only when needed
 
-For documentation-only changes, at minimum inspect the changed file and confirm `git status --short`.
+For documentation-only changes, inspect the changed file and confirm `git status --short`.
+
+## Output Format
+When finishing a task, report:
+- target
+- what you did
+- files changed
+- validation run
+- key result
+- remaining risks or assumptions
+- exact log entries appended, if logs were updated
 
 ## Commands
 - Install: `pip install -r requirements.txt`
-- Single game smoke test: `python run_single_game.py --config configs/game/example.json`
-- Tournament smoke test: `python run_tournament.py --config configs/tournament/example.json`
+- Run app: `python run_single_game.py --config configs/game/example.json`
+- Run targeted test: `python run_single_game.py --config configs/game/example.json`
+- Run full test suite: not currently configured; use a small tournament smoke test instead
 - Lint: not currently configured in this repository
 - Format: not currently configured in this repository
-- Run app: use the single-game or tournament commands above
+- Benchmark / eval: `python run_tournament.py --config configs/tournament/example.json`
 
-## File boundaries
-- `src/engine.py`: game engine and timeout/disqualification behavior; do not modify for agent strategy unless explicitly asked.
-- `src/game_utils.py`: player/config loading helpers.
-- `src/tournament_runner.py`: tournament orchestration and scoring.
-- `src/players/...`: player implementations.
-- `configs/...`: game and tournament configuration examples.
-- `results/...`: generated game/tournament outputs when produced.
-- `docs/...` or root `*.md`: documentation and research notes.
-
-## Task-specific expectations
-
-### Research tasks
-- Read before editing.
-- Identify relevant files, architecture, constraints, and risks.
-- Summarize likely causes, dependencies, or solution directions.
-- Prefer analysis and planning over implementation.
-- Recommend the next step: draft, debug, improve, or eval.
-- Do not modify code unless explicitly requested.
-
-### Draft tasks
-- Implement the smallest complete version that satisfies the request.
-- Do not expand scope without justification.
-- For player agents, keep a safe fallback action and enforce bounded computation.
-
-### Debug tasks
-- Reproduce the bug if possible.
-- Identify root cause before fixing.
-- Prefer minimal corrective changes.
-- Add a regression test when appropriate.
-- Do not mask timeouts or memory errors with broad exception handlers.
-
-### Improve tasks
-- Preserve intended behavior.
-- Focus on one improvement dimension at a time.
-- Explain tradeoffs.
-- Measure impact with tournaments or targeted simulations when practical.
-
-### Eval tasks
-- Report both aggregate results and representative failures.
-- Separate observation from interpretation.
-- Track average rank, average score, timeouts, exceptions, disqualifications, and OOM/ERR markers when available.
-- Recommend next action: debug, improve, or redesign.
-
-## Output format
-When you finish:
-- Summary
-- Files changed
-- Validation run
-- Remaining risks / assumptions
+## Important Paths
+- Main source path: `src/`
+- Main tests path: no dedicated `tests/` directory is currently present
+- Eval / benchmark path: `run_tournament.py`, `configs/tournament/`, and generated `results/`
+- Key docs path: `docs/`, `README.md`, `Spec.txt`, and `CODEXAGENT.MD`
