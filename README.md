@@ -2,7 +2,44 @@
 
 ## Setup
 
-Use `python 3.13.11` and `pip install -r requirements.txt`.
+Use CPython `3.13.x`. The bundled baseline extension file
+`src/players/TA/public_baselines1.cpython-313-x86_64-linux-gnu.so` is compiled
+for CPython 3.13, so Python 3.10/3.11/3.12 will not work for that module.
+
+The standard local environment for this repo is the conda env `FAI_final`.
+Current baseline-compatible local evals in this repo have been run from a
+Python 3.13 conda environment rather than `./.venv`.
+
+### Recommended Conda Setup
+
+Create and activate a Python 3.13 conda env, then install the lightweight
+runtime dependencies:
+
+```bash
+conda create -n FAI_final python=3.13 -y
+conda activate FAI_final
+python -m pip install -r requirements-core.txt
+```
+
+If you also want the larger RL/tooling stack kept in `requirements.txt`:
+
+```bash
+conda activate FAI_final
+python -m pip install -r requirements.txt
+```
+
+### Optional `venv` Setup
+
+If you still want an isolated `venv` for lighter local work, you can use:
+
+```bash
+python3.13 -m venv .venv
+.venv/bin/python -m ensurepip --upgrade
+.venv/bin/python -m pip install -r requirements-core.txt
+```
+
+Note: the repo's recent public-baseline evaluations were validated in the
+conda env, not the `venv`.
 
 ## Running Simulations and Tournaments
 
@@ -20,6 +57,103 @@ Use `run_tournament.py` to run large-scale evaluations.
 python run_tournament.py --config configs/tournament/example.json
 ```
 *Optional config overrides*: You can mix-and-match configurations via the command line using `--player-cfg`, `--engine-cfg`, or `--tournament-cfg`.
+
+## Cross-Play Dataset And Training
+
+The repo now includes a lightweight offline learning pipeline under
+`src/training/` plus two CLI helpers:
+
+- `scripts/generate_crossplay_data.py`
+- `scripts/train_crossplay_model.py`
+
+The default top-teacher pool is `CFR,HSP,HFB,AZL,LPRA`. The generator also
+supports broader diversity pools with optional lower per-label example weights.
+The trainer now learns separate `early`, `mid`, and `late` linear heads from
+the same candidate feature surface, so the CLI usage stays the same while the
+student gets a safer capacity bump.
+Currently supported labels are:
+
+- `CFR`, `HSP`, `HFB`, `AZL`, `LPRA`
+- `LFS`, `CFC`, `CRS`, `IMIT`, `RND`
+- `B4`, `B5`
+
+### Baseline Draft Dataset / Training
+
+```bash
+python scripts/generate_crossplay_data.py \
+  --output results/training/crossplay_examples.jsonl \
+  --games-per-lineup 1 \
+  --base-seed 11 \
+  --n-rounds 10
+
+python scripts/train_crossplay_model.py \
+  --dataset results/training/crossplay_examples.jsonl \
+  --output src/players/crossplay_imitation/crossplay_model.json \
+  --epochs 600 \
+  --learning-rate 0.05 \
+  --l2 0.0001
+```
+
+### Larger Diverse Dataset With Lower-Weight Auxiliary Models
+
+This is the recommended next step if you want a much larger dataset while
+keeping the strongest teacher pool dominant:
+
+```bash
+python scripts/generate_crossplay_data.py \
+  --output results/training/crossplay_examples_diverse.jsonl \
+  --teacher-labels CFR,HSP,HFB,AZL,LPRA,LFS,CFC,CRS,IMIT,RND \
+  --teacher-weight LFS=0.35 \
+  --teacher-weight CFC=0.35 \
+  --teacher-weight CRS=0.35 \
+  --teacher-weight IMIT=0.35 \
+  --teacher-weight RND=0.20 \
+  --games-per-lineup 3 \
+  --include-rotations \
+  --max-lineups 80 \
+  --lineup-seed 11 \
+  --base-seed 11 \
+  --n-rounds 10
+
+python scripts/train_crossplay_model.py \
+  --dataset results/training/crossplay_examples_diverse.jsonl \
+  --output src/players/crossplay_imitation/crossplay_model.json \
+  --epochs 1200 \
+  --learning-rate 0.03 \
+  --l2 0.0001
+```
+
+Notes:
+
+- `--teacher-weight LABEL=FLOAT` multiplies the logged-example weight for that
+  label during training, on top of the existing rank-based weight.
+- `--max-lineups` lets you include more labels without exploding into every
+  possible `n choose 4` lineup.
+- `CrossPlayImitationPlayer` loads
+  `src/players/crossplay_imitation/crossplay_model.json` automatically.
+
+### Quick Tournament Evaluation For The Learned Player
+
+```bash
+printf '%s\n' '[
+  ["src.players.crossplay_imitation", "CrossPlayImitationPlayer", {}, "XPI"],
+  ["src.players.TA.public_baselines1", "Baseline4", {}, "B4"],
+  ["src.players.TA.public_baselines1", "Baseline5", {}, "B5"],
+  ["src.players.TA.random_player", "RandomPlayer", {}, "RND"]
+]' > /tmp/crossplay_eval_players.json
+
+printf '%s\n' '{
+  "type": "random_partition",
+  "duplication_mode": "cycle",
+  "num_games_per_player": 40,
+  "num_workers": 4
+}' > /tmp/crossplay_eval_tournament.json
+
+python run_tournament.py \
+  --config configs/tournament/example.json \
+  --player-cfg /tmp/crossplay_eval_players.json \
+  --tournament-cfg /tmp/crossplay_eval_tournament.json
+```
 
 ## Config File Structure
 

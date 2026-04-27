@@ -1,0 +1,94 @@
+{
+    "baselines": [
+        ["src.players.TA.public_baselines1", "Baseline1", {}, "B1"],
+        ["src.players.TA.public_baselines1", "Baseline2", {}, "B2"],
+        ["src.players.TA.public_baselines1", "Baseline3", {}, "B3"],
+        ["src.players.TA.public_baselines1", "Baseline4", {}, "B4"],
+        ["src.players.TA.public_baselines1", "Baseline5", {}, "B5"]
+    ],
+    "players": [
+        [
+            "src.players.rule_low_first_safe_shed",
+            "LowFirstSafeShedPlayer",
+            {},
+            "LFS"
+        ],
+        [
+            "src.players.rule_closest_fit_conservative",
+            "ClosestFitConservativePlayer",
+            {},
+            "CFC"
+        ],
+        [
+            "src.players.rule_high_first_blocker",
+            "HighFirstBlockerPlayer",
+            {},
+            "HFB"
+        ],
+        [
+            "src.players.rule_controlled_reset_sacrifice",
+            "ControlledResetSacrificePlayer",
+            {},
+            "CRS"
+        ],
+        [
+            "src.players.rule_leader_punish_rank_aware",
+            "LeaderPunishRankAwarePlayer",
+            {},
+            "LPRA"
+        ],
+        [
+            "src.players.rule_human_strategy_portfolio",
+            "HumanStrategyPortfolioPlayer",
+            {},
+            "HSP"
+        ],
+        [
+            "src.players.alpha_zero_lite",
+            "AlphaZeroLitePlayer",
+            {},
+            "AZL"
+        ],
+        [
+            "src.players.cfr",
+            "FullCFRPlayer",
+            {},
+            "CFR"
+        ],
+        [
+            "src.players.ISMCTS",
+            "ISMCTSPlayer",
+            {},
+            "ISMCTS"
+        ],
+        [
+            "src.players.NFSP",
+            "NFSPPlayer",
+            {},
+            "NFSP"
+        ],
+        ["src.players.crossplay_imitation", "CrossPlayImitationPlayer", {}, "XPI"],
+        ["src.players.TA.public_baselines1", "Baseline4"],
+        ["src.players.TA.public_baselines1", "Baseline5"],
+        ["src.players.TA.random_player", "RandomPlayer"]
+    ],
+    "engine": {
+        "n_players": 4,
+        "n_rounds": 10,
+        "verbose": false,
+        "timeout": 1.0,
+        "timeout_buffer": 0.5
+    },
+    "tournament": {
+        "type": "random_partition",
+        "duplication_mode": "cycle",
+        "num_games_per_player": 2000,
+        "num_workers": 40,
+        "scoring": {
+            "baseline_upper_pct": 0.8,
+            "baseline_lower_pct": 0.2,
+            "score_at_upper_pct": 80,
+            "score_at_lower_pct": 20
+        }
+    }
+}

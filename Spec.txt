@@ -1,0 +1,476 @@
+Building a 6 Nimmt! Agent
+FAI 2026 Final Project
+Instructors: Shang-Tse Chen & Yun-Nung Chen
+Due date: 2026.06.14. (Sun.)
+想不到吧！開學第三週就可以開始做 final project！
+1
+Code: https://github.com/yenshan0530/2026-FAI-Final-Release 
+
+FAQ and Updates
+2
+
+Game Introduction
+3
+
+The Objective: Stay Low!
+Every card has "Bullheads" (🐮) on it. These are Negative Points.
+Winner = Player with the FEWEST Bullheads!
+Normal Cards
+Ends in 5
+% 10 == 0
+% 11 == 0
+The King
+4
+
+Game Setup
+       The Deck     104 cards (1 to 104). Each number is unique.
+       The Field     4 rows are initialized, each with 1 starting card.
+ Player Hands   Players receive 10 cards each. Game lasts 10 rounds.
+  The Rounds   In each round, cards are processed from Smallest to Largest.
+5
+
+How to Play: The Closest Fit
+Cards must be placed in a row where the end-number is smaller than your card, but closest to it.
+ROW 1
+
+
+ROW 2
+
+
+ROW 3
+You Play
+It MUST go to Row 2 (closest smaller number)
+6
+
+The Nightmare: The 6th Card
+A row can only hold 5 cards. If you are forced to place the 6th card...
+BOOM! You take all 5 cards (penalty += sum(3, 2, 5, 1, 3)),
+ and your "42" becomes the new start of the row.
+7
+
+What if your card is too small?
+If your card is lower than all row-ends, you must take a row, then place your card.
+Selection is AUTOMATED (No user choice)
+ROW 1
+ROW 2
+ROW 3
+ROW 4
+You Play
+2 🐮
+3 🐮
+1 🐮
+2 🐮
+8
+
+Play with your friends to brainstorm strategies!
+Play on BGA: https://boardgamearena.com/gamepanel?game=sechsnimmt
+Or play with two decks of poker cards…?
+9
+
+Game Configurations
+10
+
+Game Specifications – Rules
+Recall: If your card is lower than all row-ends, you must take a row, then place your card.
+Which row will you take? We deterministically choose:
+The row with the least penalty (number of bullheads)
+If there is a tie, the row with less number of cards
+If there is still a tie, the row with the smallest index
+11
+
+Class engine:
+What you need to know about the game engine
+__init__(self, cfg, players)
+play_game(self)
+play_round(self)
+setup game config, instantiate players, deal cards 
+play 10 rounds
+request each player to play a card and additionally,
+check for timeouts
+check for disqualifications
+check for invalid moves
+check for memory usage
+update game history
+12
+
+Class engine:
+What you need to know about the game engine
+__init__(self, cfg, players)
+play_game(self)
+play_round(self)
+setup game config, instantiate players, deal cards 
+play 10 rounds
+request each player to play a card and additionally,
+check for timeouts
+check for disqualifications
+check for invalid moves
+check for memory usage
+update game history
+13
+
+Game Specifications
+Timeouts: You have 1 second to play your card.
+The timeout is a self-defined class
+
+Once the time is out, we will send a TimeoutException to stop your player
+We automatically play the smallest card for you
+Your final penalty is your penalty + penalty gained by the min player
+If time is out and you catch the exception
+You get a penalty (see Game Specifications – Penalties)
+Do not `except BaseException (as e):` or use a single `except:`
+Be careful especially if you use LLM to write code!
+class TimeoutException(BaseException):
+    pass
+14
+
+Memory Errors:
+Each player has a RAM usage limit of 1GB.
+Be careful of storing huge dictionaries (while doing some tree search?)
+Multi-threading, Multi-processing:
+Forbidden
+Invalid Moves:
+If you play an invalid card (wrong type, number not in your hand, etc.), we automatically play the smallest card for you.
+Game Specifications
+15
+
+If you violate the following rules, your final score is deducted based on severity:
+Modify the game history
+We always pass a copied version of board history and your hands to you. No penalty, since you won’t succeed anyway.
+Change the random seed
+We have a customized random number generator. No penalty, since you won’t succeed anyway.
+Game Specifications – Penalties
+16
+
+You purposely or accidentally use more than the RAM limit 1GB
+If you hit this limit several times, your score for the final project will be multiplied by up to 50%
+If you try to use multi-threading or multi-process
+your score for the final project will be multiplied by up to 50%
+Timeouts - If you exceed the time limit (1 second) when making decisions, we will automatically play the smallest card for you.
+In the normal case, this would incur no additional penalty.
+However, if you try to catch the exception, your score for the final project will be multiplied by up to 70%.
+Be careful with torch—large batch sizes or models may cause timeouts.
+Game Specifications – Penalties
+17
+
+If you run a tournament, these errors will be recorded and marked:
+DQ: Player timeouts and swallows a timeout exception.
+EXC: Player code raised an exception during their turn.
+OOM: Player’s matchup subprocess was killed due to exceeding the max_memory_mb_per_matchup limit.
+ERR: Other errors occurred in the matchup.
+Game Specifications – Penalties
+18
+Please refer to README.md in the project repository for more details.
+
+Tournament Configurations
+19
+
+A Tournament 
+A tournament is what TAs would run to evaluate all of your players.
+A tournament consists of multiple partitions
+A partition is dividing all players into groups of four
+If there is a remainder, random players are padded
+Each partition consists of multiple games
+Specifically, if there are N students, there would be ceil(N / 4) games
+We will run at least 500 partitions to mitigate randomness of final results
+If we think the results haven’t converged, we will run more
+20
+
+Scoring Policy (Per Game)
+In each game, we rank players by their respective penalties
+If there is a tie, all players receive the average of the total rank
+For example, if Players 1-4 get penalty [10, 10, 10, 3],
+They rank [ (2+3+4)/3, (2+3+4)/3, (2+3+4)/3, 1] respectively
+If players 1-4 get penalty [0, 1, 5, 5],
+They rank [1, 2, 3.5, 3.5] respectively
+If your player gets disqualified, they are replaced by a min player.Final penalty is your original penalty + penalty gained by the min player
+21
+
+Scoring Policy (Per Tournament)
+Your final ranking depends on your final average total rank.
+Conversion from the average total rank to your score for the final project is shown in Grading Policy.
+22
+
+Environment Specifications
+23
+
+Machine Specifications
+We will run the tournament on a machine at least as powerful as the CSIE workstations (ws1–ws7).
+No GPU will be provided. Please use CPU for all computation.
+Test your players on ws1–ws7 to check for OOM errors and timeouts.
+Remember:
+Only 1 second for each decision
+Only 1GB memory allowed for each player
+You cannot use multi-process or multi-thread!
+24
+
+Environment Specifications
+Python version 3.13.11
+Allowed packages are listed in requirements.txt
+Tournaments will be run under this setting.
+If you want to use any additional packages, email us for permission first
+It is recommended to use conda for environment settings
+conda create -n FAI-final python=3.13.11
+pip install -r requirements.txt
+Miniconda3 installation guide: https://www.anaconda.com/docs/getting-started/miniconda/install
+25
+
+Sample Code Explanation
+26
+
+File Structure Overview
+Please refer to README.md in the project repository for more details.
+27
+
+Write your own players
+Please refer to README.md in the project repository for more details.
+28
+
+Write your own players
+Please refer to README.md in the project repository for more details.
+Required function 1
+Required function 2
+29
+Notes for __init__():
+The player_idx is given just for you to lookup info on the board_history.
+You can pass in other arguments if you want for testing, but remember to remove them or set default values in your final submitted version.
+
+Notes about action():
+Hands are sorted! You don’t have to sort them again.
+It is recommended to compute values you need from the board_history instead of storing them, since your values might be incorrect if timeouts occur.
+The following are included in the history state:
+Write your own players
+Please refer to README.md in the project repository for more details.
+current score of each agent
+cards players played in each round
+cards on the table in each round
+penalties players gained in each round
+30
+
+Running Games and Tournaments
+31
+
+Saved Results – Game
+Results are saved in `results/game`.
+32
+
+Saved Results – Tournament
+Disqualification counts
+Timeout counts
+Exception catching counts
+Player total scores
+Player total ranks
+Player total games played
+Player ranks for each game
+Player scores for each game
+33
+
+Setting Configurations
+Check configs/ in the project repository for examples.
+34
+You can set the configurations of a single game or a whole tournament.
+Player config
+Engine config
+Tournament config
+
+There are many arguments for each configuration category.
+Check the README in the project repository.
+
+Setting Configurations – Players
+All of these are valid formats:
+"players": [
+        {
+            "path": "src.players.your_student_id.best_player1",
+            "class": "BestPlayer1",
+            "args": {}
+        },
+        [ "src.players.your_student_id.best_player1", "BestPlayer1" ],
+        [ "src.players.your_student_id.best_player1", "BestPlayer2", {} ],
+]
+Check configs/ in the project repository for examples.
+35
+
+36
+Grading Policy & Schedule
+Important!
+
+Grading Policy
+Performance (70 pts)
+Midterm Submission (15 pts)
+Tournament with all students + 27 baselines, B5 = 70, B27 = 90
+Final Submission (55 pts)
+Tournament with all students + 55 baselines, B27 = 70, B55 = 90
+Report (30 pts)
+Novelty: qualitative + quantitative, up to +5 pts, total capped at 100
+37
+Scores between the two reference baselines are assigned linearly by ranking. 
+
+Grading Policy
+Performance (70 pts)
+Midterm Submission (15 pts)
+Tournament with all students + 40 baselines (a weaker subset)
+Final Submission (55 pts)
+Tournament with all students + 55 baselines (the full set)
+Report (30 pts)
+
+Novelty: qualitative + quantitative, up to +5 pts, total capped at 100
+38
+
+Baselines
+Please refer to README.md in the project repository for more details.
+39
+We will provide baselines in binary form.
+There are 55 baselines in total. 
+5 baselines from B1-B27 will be released before the midterm.
+5 baselines from B1-B55 will be released after the midterm.
+The released baselines are only a subset, so avoid overfitting to them.
+Baselines may be used for training, but cannot be submitted directly or imported into your final submission.
+
+Baselines Scoring Criteria
+Please refer to README.md in the project repository for more details.
+40
+B1  B2         B5*                              [...]               B50            B55**
+baselines
+you
+3.0
+1.4
+2.4
+Avg. Rank
+10
+90
+40
+For midterm, B5* = 60 pts, B20** = 90 pts
+For final, B20* = 40 pts, B55** = 90 pts
+
+41
+Fun Activity - Guess your final rank!
+You can submit a guess of your final rank in the tournament before the deadline.
+If you are the closest you may receive additional bonus points!
+If you guess your exact ranking, you may receive even more points!
+
+42
+Fun Awards!
+TAs can also give bonus points.
+For example, 
+The best-performing non-model based solution
+TA’s favorite algorithm
+Smallest submission size 
+
+Important: Early (Midterm) Submission
+Since we are releasing a brand new game engine, there may be many bugs…
+We need your help for early discovery of any potential issues!
+There will be a midterm submission checkpoint (see next page).
+Please try to provide feedback before the midterm submission.
+After that, unless there are important bugs, we don’t guarantee to fix the code.
+We will release the updated code before 5/20.
+43
+
+Timeline
+3/9-3/15 Week 3
+3/11 (Wed.): release baseline code
+…
+4/20-4/26 Week 9
+4/27-5/3 Week 10
+4/29 (Wed.): midterm submission deadline
+5/4-5/10 Week 11
+5/11 (Sun.) evaluate & release midterm submission results
+(we will release how many baselines you’ve beaten and a histogram of the class performance)
+5/11-5/17 Week 12
+5/18-5/24 Week 13
+5/20 (Wed.): release updated code (if necessary)
+5/25-5/31 Week 14
+6/1-6/7 Week 15
+6/8-6/14 Week 16
+6/14 (Sun.): Code & report submission deadline
+44
+
+Submission Policy
+45
+
+Code
+You can submit two best players
+Name them:
+BestPlayer1 in best_player1.py
+BestPlayer2 in best_player2.py
+Try to think of diverse strategies that can counter different playing styles!
+You don’t know what the player pool would be like.
+46
+
+Code
+All files that were used to produce your final methods should be submitted
+e.g., training scripts, data collection pipelines, etc.
+If you have intermediate files (other than best players), you need to write an additional README.md explaining how to reproduce your results
+
+Your code will be evaluated in a closed network, i.e., you cannot download models from the web.
+47
+
+Your report should include but not be limited to
+Methods tried: Compare all the approaches you have explored.
+Core Idea: Explain the main idea and logic of your 2 final algorithms.
+Implementation: Details on optimizations and hyperparameter tuning.
+Self-Assessment: What you are good at and what you struggled with.
+Strategic Profiling: Opponent styles favorable and unfavorable to your 2 algorithms.
+Agent Comparison: Compare the trade-offs of your two agents.
+(Optional) Game analysis (vs. Texas Hold’em), future improvements...
+You should write your report in maximum 3 A4 pages in pdf format
+Formatting: Use reasonable font sizes and margins.
+48
+Report
+
+Submission
+Please compress your player and the related files  in a single .zip named with your student id in lowercase.
+The size of the submitted .zip file should be less than NTU COOL’s submission restriction (~2GB).
+Don’t hand in unnecessary pycache files.
+Same format for the midterm submission and the final code submission.
+Wrong format: -10% for the coding portion.
+49
+
+Submission
+Example:
+bxx902xxx.zip
+bxx902xxx/
+|-- README.md
+|-- best_player1.py (with class BestPlayer1)
+|-- best_player2.py (with class BestPlayer2)
+|-- other related files needed
+|-- Do not hand in __pycache__, MACOSX files!!!
+Mac users: Use the command `zip -r student_id.zip student_id/` in your terminal.
+50
+Make sure there is a directory after decompression.
+
+51
+Submission Portals
+
+Other Policies
+Late submission policy: No late submission
+Plagiarism policy: Penalty up to 0 pts
+Do not send your code to your friends
+Discussion is encouraged
+LLM usage policy:
+No restriction, but you should disclose any LLM usage in your report.
+You are still responsible for what the LLM writes for you.
+If your LLM writes a poorly written report or flawed code, the penalty is on you.
+52
+
+Contact Us
+53
+Office hour: Wed 13:00-14:00 (R524)
+Please email us before 23:59 the day before if you plan to come
+Otherwise we don’t guarantee to show up
+FAI TA email: fai-ta@csie.ntu.edu.tw 
+Please use the tag [Final Project] so we see your emails
+If we don’t reply your mail within 48 hours, please send a follow up
+Teaching assistants:
+Yen-Shan Chen, Cheng-Yin Chang, Chih-Ho Chen, Jing Jin
+
+
+54
+Report Bugs and Issues
+If you identify any bugs in the game engine or find the game rules ambiguous, please contact us as soon as possible.
+For minor clarifications or fixes, we will provide updates in the change logs of this slide deck.
+For major updates, we will make an announcement through NTU COOL.
+
+55
+NTU COOL Discussion Forum
+We’ve created a discussion forum on NTU COOL for the final project.
+This is mainly for you to discuss strategies and thoughts.
+If you want to ask TA questions, please contact us through email.  

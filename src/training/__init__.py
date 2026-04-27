@@ -1,0 +1,33 @@
+from .crossplay_learning import (
+    AVAILABLE_CROSSPLAY_LABELS,
+    DEFAULT_DATASET_PATH,
+    DEFAULT_MODEL_PATH,
+    DEFAULT_TEACHER_LABELS,
+    MODEL_FEATURE_NAMES,
+    CrossPlayFeatureEncoder,
+    build_crossplay_lineups,
+    generate_crossplay_examples,
+    load_crossplay_examples,
+    load_model,
+    save_crossplay_examples,
+    save_model,
+    score_feature_values,
+    train_linear_policy,
+)
+
+__all__ = [
+    "AVAILABLE_CROSSPLAY_LABELS",
+    "DEFAULT_DATASET_PATH",
+    "DEFAULT_MODEL_PATH",
+    "DEFAULT_TEACHER_LABELS",
+    "MODEL_FEATURE_NAMES",
+    "CrossPlayFeatureEncoder",
+    "build_crossplay_lineups",
+    "generate_crossplay_examples",
+    "load_crossplay_examples",
+    "load_model",
+    "save_crossplay_examples",
+    "save_model",
+    "score_feature_values",
+    "train_linear_policy",
+]

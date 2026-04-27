@@ -84,7 +84,7 @@ def run():
              
     if not config:
         print("Error: No configuration provided. Please provide --config or the split config arguments.")
-        sys.exit(1)
+        return 1
             
     # 2. Run Tournament
     try:
@@ -109,7 +109,7 @@ def run():
         print(f"Tournament failed: {e}")
         import traceback
         traceback.print_exc()
-        return
+        return 1
 
     # 3. Save Results
     output_data = {
@@ -131,6 +131,9 @@ def run():
         print("Save successful.")
     except Exception as e:
         print(f"Error saving results: {e}")
+        return 1
+
+    return 0
 
 if __name__ == "__main__":
-    run()
+    sys.exit(run())

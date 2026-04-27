@@ -1,0 +1,23 @@
+The 6 Nimmt! Strategy Codex
+While 6 Nimmt! is often perceived as a game of pure luck, consistent success requires strategic foresight, damage limitation, and risk avoidance. It is true that single hands can be subject to the luck of the draw, but over repeated plays, the law of large numbers evens out the randomness, allowing experienced players to reliably defeat newcomers. At its core, the game is about risk management: accepting that you will inevitably take some cards, and focusing your efforts on taking as few penalty points as possible.
+
+Fundamental Hand Management
+Every card you play serves as a building block for your broader strategy, starting with the very first card of the round. Even though this opening play rarely scores points, it sets the stage. If your hand is heavily skewed toward high or low numbers, you can use your first card to block the high end or clear large cards from the table, forcing the game into a numerical range where you hold the most power. When holding a sequence of cards, playing the middle card is often the safest bet; depending on the variant, this leaves you with playable options on either side of the row. If you are ever forced to guess between several cards, it is often wise to play the one carrying the highest penalty points. If your guess is wrong and the card is taken, those heavy points will at least go to an opponent rather than landing in your own pile.
+
+Damage Control and Board Manipulation
+6 Nimmt! is fundamentally a game of blocking. Your primary goal is to safely nestle your cards into the middle of existing rows, far away from the dangerous final position. When safe rounds occur—moments where the board has plenty of open spaces—use them to build your strategy by taking away unwanted rows or blocking others. Conversely, when forced into a corner, taking a minor penalty early is infinitely better than taking a massive hit later. Furthermore, you can weaponize these tactical sacrifices. You might intentionally take a row with a moderate penalty if it forces the point leader to pick up an even worse row, or if it protects a losing player from elimination, thereby prolonging the game and giving you time to catch up.
+
+Navigating High-Risk Cards
+A conservative, highly effective approach for newer players is to fiercely avoid the game's heaviest penalties: the "55" card and the red cards (multiples of 11). By memorizing and tracking just these high-value cards, you can significantly reduce your risk. Treat any row containing or nearing the 55 with extreme caution. Never gamble on slipping a card safely past it, and assume that if a 54 sits at the end of a line, the 55 is about to be played.
+
+Reading the Table and the Players
+Success heavily depends on tracking what has been played and understanding your opponents. Beginners tend to be overly terrified of taking any points at all, while veterans are rarely afraid to absorb a small penalty if it forces a disaster onto someone else. You must also watch for group psychology. If several players get burned by a massive high-point row, the group will likely panic and play very small cards in the following round. Anticipating these pendulum swings allows you to play safely on the opposite end of the spectrum.
+
+Variant-Specific Tactics
+Your approach must shift depending on the ruleset being used:
+
+Normal Variant: Focus heavily on the cards that end rows and the small cards that force pickups. Try to intentionally close out high-penalty rows with your highest cards early on, ensuring you don't get trapped taking them later. Get rid of your smallest cards quickly, perhaps by taking a high card away early to create rows of small cards, forcing the rest of the table to play low.
+
+Tactic Variant: Because fewer cards are in play, counting cards becomes crucial. If you hold mostly high cards, aggressively block rows to force opponents with low cards to take them. If you hold low cards, clear the big cards off the table to make high-card plays a massive risk for your opponents. Do not be afraid to take intentional, calculated penalties to shape the board.
+
+Profi Variant: Because cards can be played to the beginning of a row, managing the lower numerical bounds is the key to victory. Holding onto small cards for too long will ruin your game, as they will prematurely snap up full rows before higher cards can. Play your smallest cards out first. Once the rows are blocked from the bottom, you can safely evaluate how to deploy your higher values based on the flow of the game.

@@ -12,7 +12,7 @@ from src.engine import Engine
 from src.game_utils import load_players, _preprocess_player_config
 
 class BaseTournamentRunner:
-    def __init__(self, config):
+    def __init__(self, config, allow_incomplete_player_pool=False):
         self.config = copy.deepcopy(config)
         self.config = _preprocess_player_config(self.config)
         
@@ -30,7 +30,7 @@ class BaseTournamentRunner:
         self.player_classes = load_players(self.config, verbose=True)
         self.player_configs = self.config.get("players", [])
         
-        if len(self.player_classes) < self.n_players_per_game:
+        if not allow_incomplete_player_pool and len(self.player_classes) < self.n_players_per_game:
             raise ValueError(f"Not enough players! Have {len(self.player_classes)}, need {self.n_players_per_game}")
 
         # Elo estimation structures
@@ -299,7 +299,7 @@ class CombinationTournamentRunner(BaseTournamentRunner):
 
 class RandomPartitionTournamentRunner(BaseTournamentRunner):
     def __init__(self, config):
-        super().__init__(config)
+        super().__init__(config, allow_incomplete_player_pool=True)
         
         self.original_num_players = len(self.player_classes)
         remainder = self.original_num_players % self.n_players_per_game
